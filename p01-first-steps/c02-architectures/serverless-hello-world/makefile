@@ -1,5 +1,7 @@
 init:
-	npm install -g serverless
+	sudo npm install -g serverless
+	sudo npm install -g serverless-offline
+
 hello-world/serverless.yml:
 	serverless create --template aws-nodejs --path hello-world
 aws-nodejs-hello-world/serverless.yml:
