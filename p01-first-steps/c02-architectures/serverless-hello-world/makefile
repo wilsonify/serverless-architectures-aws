@@ -1,9 +1,14 @@
 init:
 	sudo npm install -g serverless
 	sudo npm install -g serverless-offline
+	sls config credentials --provider aws --key <> --secret <>
 
 hello-world/serverless.yml:
 	serverless create --template aws-nodejs --path hello-world
+
+hello-world/serverless.yml:
+	cd hello-world && serverless deploy
+
 aws-nodejs-hello-world/serverless.yml:
 	serverless create --template aws-nodejs --path aws-nodejs-hello-world
 nodejs-docker-hello-world/serverless.yml:
