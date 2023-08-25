@@ -6,23 +6,15 @@
  */
 
 'use strict';
-var AWS = require('aws-sdk');
+const AWS = require('aws-sdk');
+const mediaConvert = new AWS.MediaConvert({ endpoint: process.env.MEDIA_ENDPOINT });
+const outputBucketName = process.env.TRANSCODED_VIDEO_BUCKET
 
-var elasticTranscoder = new AWS.ElasticTranscoder({
-    region: 'us-east-1'
-});
-
-exports.handler = function(event, context, callback){
+exports.handler = async (event, context) => {
     console.log('Welcome');
-
-    var key = event.Records[0].s3.object.key;
-
-    //the input file may have spaces so replace them with '+'
-    var sourceKey = decodeURIComponent(key.replace(/\+/g, ' '));
-
-    //remove the extension
-    var outputKey = sourceKey.split('.')[0];
-
+    const key = event.Records[0].s3.object.key;
+    var sourceKey = decodeURIComponent(key.replace(/\+/g, ' ')); //the input file may have '+' so replace them with spaces
+    var outputKey = sourceKey.split('.')[0]; //remove the extension
     var params = {
         PipelineId: '1451470066051-jscnci',
         Input: {
