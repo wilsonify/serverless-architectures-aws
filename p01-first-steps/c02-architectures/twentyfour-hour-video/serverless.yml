@@ -18,4 +18,4 @@ functions:
       MEDIA_ROLE: "arn:aws:iam::064592191516:role/media-convert-role"
       TRANSCODED_VIDEO_BUCKET: "064592191516-serverless-video-transcode"
     events:
-      - s3: "064592191516-serverless-video-transcode"
+      - s3: "064592191516-serverless-video-upload"
