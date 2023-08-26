@@ -9,7 +9,7 @@ provider:
 
 functions:
   transcode-video:
-    handler: transcode-video/index.handler
+    handler: transcode_video_python/__main__.lambda_handler
     role: "arn:aws:iam::064592191516:role/transcode-video"
     package:
       individually: true
