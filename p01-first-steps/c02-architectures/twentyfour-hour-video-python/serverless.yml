@@ -18,4 +18,10 @@ functions:
       MEDIA_ROLE: "arn:aws:iam::064592191516:role/media-convert-role"
       TRANSCODED_VIDEO_BUCKET: "064592191516-serverless-video-transcode-python"
     events:
-      - s3: "064592191516-serverless-video-upload-python"
+      - s3:
+          bucket: "064592191516-serverless-video-upload-python"
+          event: s3:ObjectCreated:*
+          rules:
+            - prefix: uploads/
+            - suffix: .jpg
+          existing: true
