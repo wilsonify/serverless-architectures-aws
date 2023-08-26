@@ -1,43 +1,68 @@
 /**
- * Created by Peter Sbarski
- * Serverless Architectures on AWS
- * http://book.acloud.guru/
- * Last Updated: Feb 11, 2017
+ * Created by Peter Sbarski (@sbarski)
+ * Serverless Architectures on AWS (2nd Edition)
  */
 
 'use strict';
+
 const AWS = require('aws-sdk');
-const mediaConvert = new AWS.MediaConvert({ endpoint: process.env.MEDIA_ENDPOINT });
-const outputBucketName = process.env.TRANSCODED_VIDEO_BUCKET
+const mediaConvert = new AWS.MediaConvert({
+    endpoint: process.env.MEDIA_ENDPOINT                
+});
 
-exports.handler = async (event, context) => {
-    console.log('Welcome');
-    const key = event.Records[0].s3.object.key;
-    var sourceKey = decodeURIComponent(key.replace(/\+/g, ' ')); //the input file may have '+' so replace them with spaces
-    var outputKey = sourceKey.split('.')[0]; //remove the extension
-    var params = {
-        PipelineId: '1451470066051-jscnci',
-        Input: {
-            Key: sourceKey
-        },
-        Outputs: [
-            {
-                Key: outputKey + '-1080p' + '.mp4',
-                PresetId: '1351620000001-000001' //Generic 1080p
-            },
-            {
-                Key: outputKey + '-720p' + '.mp4',
-                PresetId: '1351620000001-000010' //Generic 720p
-            },
-            {
-                Key: outputKey + '-web-720p' + '.mp4',
-                PresetId: '1351620000001-100070' //Web Friendly 720p
+const outputBucketName = process.env.TRANSCODED_VIDEO_BUCKET;
+
+exports.handler = async (event, context) => { 
+    const key = event.Records[0].s3.object.key;                        
+    const sourceKey = decodeURIComponent(key.replace(/\+/g, ' '));     
+    const outputKey = sourceKey.split('.')[0];                         
+
+    const input = 's3://' + event.Records[0].s3.bucket.name + '/' + event.Records[0].s3.object.key;    
+    const output = 's3://' + outputBucketName + '/' + outputKey + '/';   
+
+    try {
+
+        const job = {
+            "Role": process.env.MEDIA_ROLE,         
+            "Settings": {
+                "Inputs": [{
+                    "FileInput": input,                             
+                    "AudioSelectors": {                             
+                        "Audio Selector 1": {
+                            "SelectorType": "TRACK",
+                            "Tracks": [1]
+                        }
+                    }
+                }],
+                "OutputGroups": [{                            
+                    "Name": "File Group",
+                    "Outputs": [{
+                        "Preset": "System-Generic_Hd_Mp4_Avc_Aac_16x9_1920x1080p_24Hz_6Mbps",    
+                        "Extension": "mp4",
+                        "NameModifier": "_16x9_1920x1080p_24Hz_6Mbps"   
+                    }, {
+                        "Preset": "System-Generic_Hd_Mp4_Avc_Aac_16x9_1280x720p_24Hz_4.5Mbps",
+                        "Extension": "mp4",
+                        "NameModifier": "_16x9_1280x720p_24Hz_4.5Mbps"
+                    }, {
+                        "Preset": "System-Generic_Sd_Mp4_Avc_Aac_4x3_640x480p_24Hz_1.5Mbps",
+                        "Extension": "mp4",
+                        "NameModifier": "_4x3_640x480p_24Hz_1.5Mbps"
+                    }],
+                    "OutputGroupSettings": {
+                        "Type": "FILE_GROUP_SETTINGS",
+                        "FileGroupSettings": {
+                            "Destination": output                    
+                        }
+                    }
+                }]
             }
-        ]};
+        };
 
-    elasticTranscoder.createJob(params, function(error, data){
-        if (error){
-            callback(error);
-        }
-    });
+        const mediaConvertResult = await mediaConvert.createJob(job).promise();           
+        console.log(mediaConvertResult);
+
+    } catch (error) {
+        console.error(error);                        
+    }
 };
