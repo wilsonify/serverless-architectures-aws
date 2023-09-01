@@ -8,3 +8,12 @@ serverless.yml:
 
 .serverless/twentyfour-hour-video-python.zip:
 	sls deploy
+
+docker-image:
+	docker build --progress=plain -t 064592191516.dkr.ecr.us-east-1.amazonaws.com/transcode_video_python:latest .
+
+docker-login-ecr:
+	aws --profile 064592191516 ecr get-login-password | docker login --username AWS --password-stdin 064592191516.dkr.ecr.us-east-1.amazonaws.com
+
+docker-push:
+	docker push 064592191516.dkr.ecr.us-east-1.amazonaws.com/transcode_video_python:latest

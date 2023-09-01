@@ -6,13 +6,17 @@ provider:
   runtime: python3.9
   region: us-east-1
   stage: dev
+  ecr:
+    images:
+      twentyfour-hour-video-python:
+        uri: "064592191516.dkr.ecr.us-east-1.amazonaws.com/transcode_video_python:latest"
 
 functions:
   transcode-video:
-    handler: transcode_video_python/__main__.lambda_handler
+    image:
+      name: twentyfour-hour-video-python
+      command: [ "transcode_video_python/__main__.lambda_handler" ]
     role: "arn:aws:iam::064592191516:role/transcode-video"
-    package:
-      individually: true
     environment:
       MEDIA_ENDPOINT: "https://lxlxpswfb.mediaconvert.us-east-1.amazonaws.com"
       MEDIA_ROLE: "arn:aws:iam::064592191516:role/media-convert-role"
