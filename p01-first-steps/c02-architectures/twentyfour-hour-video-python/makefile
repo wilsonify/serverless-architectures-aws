@@ -20,6 +20,18 @@ docker-push:
 
 integrate: docker-image docker-login-ecr docker-push
 
+docker-stop:
+	docker stop tvp || true
+
+docker-run:
+	docker run --rm --name tvp -p 32768:8080 -d 064592191516.dkr.ecr.us-east-1.amazonaws.com/transcode_video_python:latest
+
+docker-test-negative:
+	curl "http://localhost:32768/2015-03-31/functions/function/invocations" -d '{}'
+
+docker-test-positive:
+	curl "http://localhost:32768/2015-03-31/functions/function/invocations" --data-binary '@test/s3-put.json'
+
 check-infra:
 	cd infra && terraform init && terraform validate && tflint
 
@@ -27,4 +39,4 @@ plan: check-infra
 	cd infra && terraform plan
 
 apply:
-	terragrunt --terragrunt-source-update plan && terragrunt apply -auto-approve
+	cd infra && terragrunt --terragrunt-source-update plan && terragrunt apply -auto-approve

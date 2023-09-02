@@ -36,10 +36,10 @@ def happy_path(event):
     bucket_name = get_bucket_from_s3_put(event)
     source_key = get_key_from_s3_put(event)
     input_uri = f's3://{bucket_name}/{source_key}'
-    output_bucket_name = os.environ['TRANSCODED_VIDEO_BUCKET']
+    output_bucket_name = os.getenv('TRANSCODED_VIDEO_BUCKET', "default-bucket")
     output_prefix = source_key.split('.')[0]
     output_uri = f's3://{output_bucket_name}/{output_prefix}/'
-    role = os.environ['MEDIA_ROLE']
+    role = os.getenv('MEDIA_ROLE', "default-media-role")
     mc_set_inputs = [dict(
         FileInput=input_uri,
         AudioSelectors={'Audio Selector 1': audio_selector}
@@ -60,18 +60,9 @@ def happy_path(event):
 
 
 def lambda_handler(event, context):
-    try:
-        media_convert_result = happy_path(event)
-        print(media_convert_result)
-        # media_convert = boto3.client('mediaconvert', endpoint_url=os.environ['MEDIA_ENDPOINT'])
-        # response = media_convert.create_job(**job)
-        return {
-            'statusCode': 200,
-            'body': json.dumps('Video transcoding job submitted successfully!')
-        }
-    except Exception as e:
-        print(f"e={e}")
-        return {
-            'statusCode': 400,
-            'body': json.dumps(f'Video transcoding job unsuccessful! e={e}')
-        }
+    media_convert_result = happy_path(event)
+    print(media_convert_result)
+    return {
+        'statusCode': 200,
+        'body': json.dumps('Video transcoding job submitted successfully!')
+    }
