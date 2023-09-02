@@ -2,8 +2,6 @@ import json
 import os
 from urllib.parse import unquote
 
-import boto3
-
 
 def get_key_from_s3_put(event):
     key = event['Records'][0]['s3']['object']['key']
@@ -58,15 +56,15 @@ def happy_path(event):
     )]
     settings = dict(Inputs=mc_set_inputs, OutputGroups=mc_set_output_groups)
     job = dict(Role=role, Settings=settings)
-    media_convert = boto3.client('mediaconvert', endpoint_url=os.environ['MEDIA_ENDPOINT'])
-    response = media_convert.create_job(**job)
-    return response
+    return job
 
 
 def lambda_handler(event, context):
     try:
         media_convert_result = happy_path(event)
         print(media_convert_result)
+        # media_convert = boto3.client('mediaconvert', endpoint_url=os.environ['MEDIA_ENDPOINT'])
+        # response = media_convert.create_job(**job)
         return {
             'statusCode': 200,
             'body': json.dumps('Video transcoding job submitted successfully!')
