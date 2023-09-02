@@ -17,3 +17,5 @@ docker-login-ecr:
 
 docker-push:
 	docker push 064592191516.dkr.ecr.us-east-1.amazonaws.com/transcode_video_python:latest
+
+integrate: docker-image docker-login-ecr docker-push
