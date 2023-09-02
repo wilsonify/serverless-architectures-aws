@@ -37,10 +37,25 @@ data "aws_iam_policy_document" "custom-resources-lambda-policy" {
     resources = ["arn:aws:lambda:us-east-1:064592191516:function/*"]
   }
 }
+
+data "aws_iam_policy_document" "lambda_cloudwatch_logs_policy_doc" {
+  statement {
+    actions   = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"]
+    effect    = "Allow"
+    resources = ["arn:aws:logs:us-east-1:064592191516:log-group:/aws/lambda/your-lambda-function-name:*"]
+  }
+}
+
 resource "aws_iam_policy" "custom-resources-lambda-policy" {
   name        = "custom-resources-lambda-policy"
   description = "Policy for Custom Resources Lambda"
   policy      = data.aws_iam_policy_document.custom-resources-lambda-policy.json
+}
+
+resource "aws_iam_policy" "lambda_cloudwatch_logs_policy" {
+  name        = "LambdaCloudWatchLogsPolicy"
+  description = "IAM policy to allow Lambda to write logs to CloudWatch Logs"
+  policy      = data.aws_iam_policy_document.lambda_cloudwatch_logs_policy_doc.json
 }
 
 # IAM Role for Media Convert
@@ -114,5 +129,10 @@ resource "aws_iam_role_policy_attachment" "transcode-video_AWSElementalMediaConv
 
 resource "aws_iam_role_policy_attachment" "transcode-video_AWSLambdaExecute" {
   policy_arn = "arn:aws:iam::aws:policy/AWSLambdaExecute"
+  role       = aws_iam_role.transcode-video.name
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_cloudwatch_logs_attachment" {
+  policy_arn = aws_iam_policy.lambda_cloudwatch_logs_policy.arn
   role       = aws_iam_role.transcode-video.name
 }
