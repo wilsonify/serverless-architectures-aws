@@ -24,7 +24,7 @@ data "aws_iam_policy_document" "custom-resources-lambda-role-assume-policy" {
 }
 
 # IAM Policy Documents
-data "aws_iam_policy_document" "custom-resources-lambda-policy" {
+data "aws_iam_policy_document" "custom-resources-lambda-policy-doc" {
   statement {
     actions   = ["s3:PutBucketNotification", "s3:GetBucketNotification"]
     effect    = "Allow"
@@ -49,7 +49,7 @@ data "aws_iam_policy_document" "lambda_cloudwatch_logs_policy_doc" {
 resource "aws_iam_policy" "custom-resources-lambda-policy" {
   name        = "custom-resources-lambda-policy"
   description = "Policy for Custom Resources Lambda"
-  policy      = data.aws_iam_policy_document.custom-resources-lambda-policy.json
+  policy      = data.aws_iam_policy_document.custom-resources-lambda-policy-doc.json
 }
 
 resource "aws_iam_policy" "lambda_cloudwatch_logs_policy" {
