@@ -27,4 +27,4 @@ plan: check-infra
 	cd infra && terraform plan
 
 apply:
-	terragrunt --terragrunt-source-update plan  && terragrunt apply
+	terragrunt --terragrunt-source-update plan && terragrunt apply -auto-approve
