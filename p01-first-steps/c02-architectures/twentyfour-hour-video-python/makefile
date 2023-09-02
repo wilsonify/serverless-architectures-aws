@@ -19,3 +19,12 @@ docker-push:
 	docker push 064592191516.dkr.ecr.us-east-1.amazonaws.com/transcode_video_python:latest
 
 integrate: docker-image docker-login-ecr docker-push
+
+check-infra:
+	cd infra && terraform init && terraform validate && tflint
+
+plan: check-infra
+	cd infra && terraform plan
+
+apply:
+	terragrunt plan && terragrunt apply
