@@ -1,53 +1,88 @@
-resource "aws_iam_role" "media-convert-role" {
-  assume_role_policy = <<POLICY
-{
-  "Statement": [
-    {
-      "Action": "sts:AssumeRole",
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "mediaconvert.amazonaws.com"
-      },
-      "Sid": ""
-    }
-  ],
-  "Version": "2012-10-17"
-}
-POLICY
+# IAM Roles and Policies for 24hr video transcode lambda
 
-  description          = "Allows MediaConvert service to call S3 APIs and API Gateway on your behalf."
-  managed_policy_arns  = ["arn:aws:iam::aws:policy/AmazonAPIGatewayInvokeFullAccess", "arn:aws:iam::aws:policy/AmazonS3FullAccess"]
+# IAM Policy Document to allow the assumption of Roles
+data "aws_iam_policy_document" "media-convert-role-assume-policy" {
+  statement {
+    actions = ["sts:AssumeRole"]
+    effect  = "Allow"
+    principals {
+      type        = "Service"
+      identifiers = ["mediaconvert.amazonaws.com"]
+    }
+  }
+}
+
+data "aws_iam_policy_document" "custom-resources-lambda-role-assume-policy" {
+  statement {
+    actions = ["sts:AssumeRole"]
+    effect  = "Allow"
+    principals {
+      type        = "Service"
+      identifiers = ["lambda.amazonaws.com"]
+    }
+  }
+}
+
+# IAM Policy Documents
+data "aws_iam_policy_document" "custom-resources-lambda-policy" {
+  statement {
+    actions   = ["s3:PutBucketNotification", "s3:GetBucketNotification"]
+    effect    = "Allow"
+    resources = ["arn:aws:s3:::064592191516-serverless-video-upload-python"]
+  }
+
+  statement {
+    actions   = ["lambda:AddPermission", "lambda:RemovePermission"]
+    effect    = "Allow"
+    resources = ["arn:aws:lambda:us-east-1:064592191516:function/*"]
+  }
+}
+resource "aws_iam_policy" "custom-resources-lambda-policy" {
+  name        = "custom-resources-lambda-policy"
+  description = "Policy for Custom Resources Lambda"
+  policy      = data.aws_iam_policy_document.custom-resources-lambda-policy.json
+}
+
+# IAM Role for Media Convert
+resource "aws_iam_role" "media-convert-role" {
+  name                = "media-convert-role"
+  path                = "/"
+  assume_role_policy  = data.aws_iam_policy_document.media-convert-role-assume-policy.json
+  description         = "Allows MediaConvert service to call S3 APIs and API Gateway on your behalf."
+  managed_policy_arns = [
+    "arn:aws:iam::aws:policy/AmazonAPIGatewayInvokeFullAccess",
+    "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+  ]
   max_session_duration = "3600"
-  name                 = "media-convert-role"
+  tags                 = {
+    app = "video-encoding-pipeline"
+  }
+
+}
+
+
+# IAM Role for Custom Resources Lambda
+resource "aws_iam_role" "custom-resources-lambda" {
+  name                 = "twentyfour-hour-video-python-IamRoleCustomResources"
   path                 = "/"
+  assume_role_policy   = data.aws_iam_policy_document.custom-resources-lambda-role-assume-policy.json
+  description          = "Allows Lambda functions to call AWS video transcode services on your behalf."
+  max_session_duration = "3600"
 
   tags = {
-    app = "video-encoding-pipeline"
+    STAGE = "dev"
   }
 
-  tags_all = {
-    app = "video-encoding-pipeline"
-  }
+
 }
 
 resource "aws_iam_role" "transcode-video" {
-  assume_role_policy = <<POLICY
-{
-  "Statement": [
-    {
-      "Action": "sts:AssumeRole",
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "lambda.amazonaws.com"
-      }
-    }
-  ],
-  "Version": "2012-10-17"
-}
-POLICY
-
-  description          = "Allows Lambda functions to call AWS video transcode services on your behalf."
-  managed_policy_arns  = ["arn:aws:iam::aws:policy/AWSElementalMediaConvertFullAccess", "arn:aws:iam::aws:policy/AWSLambdaExecute"]
+  assume_role_policy  = data.aws_iam_policy_document.custom-resources-lambda-role-assume-policy.json
+  description         = "Allows Lambda functions to call AWS video transcode services on your behalf."
+  managed_policy_arns = [
+    "arn:aws:iam::aws:policy/AWSElementalMediaConvertFullAccess",
+    "arn:aws:iam::aws:policy/AWSLambdaExecute"
+  ]
   max_session_duration = "3600"
   name                 = "transcode-video"
   path                 = "/"
@@ -56,86 +91,28 @@ POLICY
     app = "video-encoding-pipeline"
   }
 
-  tags_all = {
-    app = "video-encoding-pipeline"
-  }
+
 }
 
-resource "aws_iam_role" "twentyfour-hour-video-python-IamRoleCustomResources" {
-  assume_role_policy = <<POLICY
-{
-  "Statement": [
-    {
-      "Action": "sts:AssumeRole",
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "lambda.amazonaws.com"
-      }
-    }
-  ],
-  "Version": "2012-10-17"
-}
-POLICY
-
-  inline_policy {
-    name   = "dev-twentyfour-hour-video-python-custom-resources-lambda"
-    policy = "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Action\":[\"s3:PutBucketNotification\",\"s3:GetBucketNotification\"],\"Resource\":\"arn:aws:s3:::064592191516-serverless-video-upload-python\",\"Effect\":\"Allow\"},{\"Action\":[\"lambda:AddPermission\",\"lambda:RemovePermission\"],\"Resource\":\"arn:aws:lambda:us-east-1:064592191516:function:*\",\"Effect\":\"Allow\"}]}"
-  }
-
-  max_session_duration = "3600"
-  name                 = "twentyfour-hour-video-python-IamRoleCustomResources"
-  path                 = "/"
-
-  tags = {
-    STAGE = "dev"
-  }
-
-  tags_all = {
-    STAGE = "dev"
-  }
-}
-
-
-resource "aws_iam_role_policy" "twentyfour-hour-video-python-IamRoleCustomResources_dev-twentyfour-hour-video-python-custom-resources-lambda" {
-  name = "dev-twentyfour-hour-video-python-custom-resources-lambda"
-  policy = <<POLICY
-{
-  "Statement": [
-    {
-      "Action": [
-        "s3:PutBucketNotification",
-        "s3:GetBucketNotification"
-      ],
-      "Effect": "Allow",
-      "Resource": "arn:aws:s3:::064592191516-serverless-video-upload-python"
-    },
-    {
-      "Action": [
-        "lambda:AddPermission",
-        "lambda:RemovePermission"
-      ],
-      "Effect": "Allow",
-      "Resource": "arn:aws:lambda:us-east-1:064592191516:function:*"
-    }
-  ],
-  "Version": "2012-10-17"
-}
-POLICY
-
-  role = "twentyfour-hour-video-python-IamRoleCustomResources"
-}
-
+# IAM Role Policy Attachment for Media Convert Role
 resource "aws_iam_role_policy_attachment" "media-convert-role_AmazonS3FullAccess" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
-  role       = "media-convert-role"
+  role       = aws_iam_role.media-convert-role.name
 }
 
+# IAM Role Policy Attachment for Custom Resources Lambda
+resource "aws_iam_role_policy_attachment" "custom-resources-lambda-policy-attachment" {
+  policy_arn = aws_iam_policy.custom-resources-lambda-policy.arn
+  role       = aws_iam_role.custom-resources-lambda.name
+}
+
+# IAM Role Policy Attachment for Transcode Video Lambda
 resource "aws_iam_role_policy_attachment" "transcode-video_AWSElementalMediaConvertFullAccess" {
   policy_arn = "arn:aws:iam::aws:policy/AWSElementalMediaConvertFullAccess"
-  role       = "transcode-video"
+  role       = aws_iam_role.transcode-video.name
 }
 
 resource "aws_iam_role_policy_attachment" "transcode-video_AWSLambdaExecute" {
   policy_arn = "arn:aws:iam::aws:policy/AWSLambdaExecute"
-  role       = "transcode-video"
+  role       = aws_iam_role.transcode-video.name
 }
