@@ -2,6 +2,10 @@ import json
 import os
 from urllib.parse import unquote
 
+import boto3
+
+sqs = boto3.client('sqs')
+
 
 def get_key_from_s3_put(event):
     key = event['Records'][0]['s3']['object']['key']
@@ -59,9 +63,23 @@ def happy_path(event):
     return job
 
 
+def send_message(job_dict):
+    # Send message to SQS queue
+    default_queue_url = "https://sqs.us-east-1.amazonaws.com/064592191516/serverless-video-transcode-sqs-try"
+    queue_url = os.getenv('SQS_QUEUE_URL', default_queue_url)
+    job_str = json.dumps(job_dict)
+    response = sqs.send_message(
+        QueueUrl=queue_url,
+        DelaySeconds=0,
+        MessageBody=job_str
+    )
+    print(response['MessageId'])
+
+
 def lambda_handler(event, context):
     media_convert_result = happy_path(event)
     print(media_convert_result)
+    send_message(media_convert_result)
     return {
         'statusCode': 200,
         'body': json.dumps('Video transcoding job submitted successfully!')
