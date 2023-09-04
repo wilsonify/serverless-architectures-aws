@@ -11,7 +11,7 @@ resource "aws_lambda_function" "twentyfour-hour-video-python-transcode-video" {
   package_type                   = "Image"
   reserved_concurrent_executions = "-1"
   role                           = "arn:aws:iam::${var.aws_account_number}:role/transcode-video"
-  source_code_hash               = "34e2a1603ba3bceb7f0e51ccdef6d5a1c90c4d68af2bc3bf6af4491a13e8d688"
+  source_code_hash               = "678ee8b39e57380f9051d0e6ed2ee31c1c4981f7e123639ca3e2210ba54fa8db"
   environment {
     variables = {
       MEDIA_ENDPOINT          = "https://lxlxpswfb.mediaconvert.us-east-1.amazonaws.com"
