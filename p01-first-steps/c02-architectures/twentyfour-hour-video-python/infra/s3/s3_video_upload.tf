@@ -1,6 +1,7 @@
+
 resource "aws_s3_bucket" "s3-serverless-video-upload-python" {
-  arn                 = "arn:aws:s3:::064592191516-serverless-video-upload-python"
-  bucket              = "064592191516-serverless-video-upload-python"
+  arn                 = "arn:aws:s3:::${var.aws_account_number}-serverless-video-upload-python"
+  bucket              = "${var.aws_account_number}-serverless-video-upload-python"
   force_destroy       = "false"
   hosted_zone_id      = "Z3AQBSTGFYJSTF"
   object_lock_enabled = "false"
@@ -15,7 +16,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "s3-serverless-vid
   bucket = aws_s3_bucket.s3-serverless-video-upload-python.id
   rule {
     apply_server_side_encryption_by_default {
-      kms_master_key_id = "arn:aws:kms:us-east-1:064592191516:alias/aws/s3"
+      kms_master_key_id = "arn:aws:kms:us-east-1:${var.aws_account_number}:alias/aws/s3"
       sse_algorithm     = "aws:kms"
     }
   }

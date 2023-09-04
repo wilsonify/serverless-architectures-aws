@@ -1,5 +1,11 @@
 # IAM Roles and Policies for 24hr video transcode lambda
 
+variable "aws_account_number" {
+  description = "AWS Account Number"
+  type        = string
+  default     = "064592191516"
+}
+
 # IAM Policy Document to allow the assumption of Roles
 data "aws_iam_policy_document" "media-convert-role-assume-policy" {
   statement {
@@ -28,13 +34,13 @@ data "aws_iam_policy_document" "custom-resources-lambda-policy-doc" {
   statement {
     actions   = ["s3:PutBucketNotification", "s3:GetBucketNotification"]
     effect    = "Allow"
-    resources = ["arn:aws:s3:::064592191516-serverless-video-upload-python"]
+    resources = ["arn:aws:s3:::${var.aws_account_number}-serverless-video-upload-python"]
   }
 
   statement {
     actions   = ["lambda:AddPermission", "lambda:RemovePermission"]
     effect    = "Allow"
-    resources = ["arn:aws:lambda:us-east-1:064592191516:function/*"]
+    resources = ["arn:aws:lambda:us-east-1:${var.aws_account_number}:function/*"]
   }
 }
 
@@ -42,7 +48,7 @@ data "aws_iam_policy_document" "lambda_cloudwatch_logs_policy_doc" {
   statement {
     actions   = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"]
     effect    = "Allow"
-    resources = ["arn:aws:logs:us-east-1:064592191516:log-group:/aws/lambda/your-lambda-function-name:*"]
+    resources = ["arn:aws:logs:us-east-1:${var.aws_account_number}:log-group:/aws/lambda/your-lambda-function-name:*"]
   }
 }
 
