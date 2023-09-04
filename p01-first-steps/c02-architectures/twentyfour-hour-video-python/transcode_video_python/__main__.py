@@ -64,7 +64,7 @@ def happy_path(event):
 
 
 def send_message(job_dict):
-    # Send message to SQS queue
+    print("Send message to SQS queue")
     default_queue_url = "https://sqs.us-east-1.amazonaws.com/064592191516/serverless-video-transcode-sqs-try"
     queue_url = os.getenv('SQS_QUEUE_URL', default_queue_url)
     job_str = json.dumps(job_dict)
